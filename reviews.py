@@ -2,7 +2,6 @@ from google_play_scraper import app, reviews
 import pandas as pd
 import time
 
-# 🚀 List of 40+ popular app package names across different categories
 app_packages = [
     # Social Media
     'com.whatsapp', 'com.instagram.android', 'com.facebook.katana', 'com.snapchat.android', 'com.twitter.android',
@@ -23,21 +22,17 @@ app_packages = [
     'com.makemytrip', 'com.tripadvisor.tripadvisor', 'com.ixigo.train.ixitrain', 'com.google.android.apps.maps', 'com.ola.customer'
 ]
 
-# 🗃️ Lists to store scraped data
 all_app_data = []
 all_reviews_data = []
 
-# 🌀 Loop through each app
 for idx, package in enumerate(app_packages):
     try:
         print(f"[{idx+1}/{len(app_packages)}] Fetching data for: {package}")
         
-        # App Details
         app_info = app(package)
         app_info['package'] = package
         all_app_data.append(app_info)
         
-        # App Reviews (limit to 200 for performance)
         app_reviews, _ = reviews(
             package,
             lang='en',
@@ -48,17 +43,15 @@ for idx, package in enumerate(app_packages):
             r['package'] = package
             all_reviews_data.append(r)
 
-        time.sleep(1)  # to avoid rate limit
+        time.sleep(1)  
 
     except Exception as e:
         print(f"⚠️ Failed for {package}: {e}")
         continue
 
-# 🔄 Convert to DataFrames
 df_apps = pd.DataFrame(all_app_data)
 df_reviews = pd.DataFrame(all_reviews_data)
 
-# 💾 Save to CSV
 df_apps.to_csv("apps_details_40.csv", index=False)
 df_reviews.to_csv("apps_reviews_40.csv", index=False)
 
