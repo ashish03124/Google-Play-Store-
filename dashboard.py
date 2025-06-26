@@ -95,7 +95,7 @@ st.markdown("""
     .stTabs [data-baseweb="tab"]:hover {
         background: #6B7AA1;
         color: black;
-        transition: 3s;
+        transition: 1s;
     }
     
     .stTabs [aria-selected="true"] {
