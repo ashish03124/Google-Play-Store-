@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual envs
+env/
+venv/
+ENV/
+*.env
+
+# System / Editor files
+.DS_Store
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Logs
+*.log
