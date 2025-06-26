@@ -20,11 +20,9 @@ import base64
 from datetime import datetime
 import time
 
-# Download NLTK resources
 nltk.download('vader_lexicon')
 nltk.download('punkt')
 
-# Set page config with modern theme
 st.set_page_config(
     page_title="Play Store Insights Pro",
     page_icon=" ",
@@ -32,12 +30,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for modern styling
 def local_css(file_name):
     with open(file_name) as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
-# Load custom CSS
 st.markdown("""
 <style>
     /* Main background */
@@ -141,7 +137,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Load the datasets with progress indicator
 @st.cache_data
 def load_data():
     with st.spinner('Loading data... This may take a moment'):
@@ -149,7 +144,6 @@ def load_data():
             playstore_df = pd.read_csv('googleplaystore.csv')
             reviews_df = pd.read_csv('apps_reviews_40.csv')
             
-            # Simulate loading time for demo
             time.sleep(2)
             
             st.success("Data loaded successfully!")
@@ -157,7 +151,6 @@ def load_data():
             
         except FileNotFoundError as e:
             st.warning(f"Error loading files: {e}")
-            # For demonstration, create minimal dataframes
             playstore_data = """App,Category,Rating,Reviews,Size,Installs,Type,Price,Content Rating,Genres,Last Updated,Current Ver,Android Ver
 Photo Editor & Candy Camera & Grid & ScrapBook,ART_AND_DESIGN,4.1,159,19M,10,000+,Free,0,Everyone,Art & Design,January 7, 2018,1.0.0,4.0.3 and up
 Coloring book moana,ART_AND_DESIGN,3.9,967,14M,500,000+,Free,0,Everyone,Art & Design;Pretend Play,January 15, 2018,2.0.0,4.0.3 and up"""
@@ -173,23 +166,19 @@ Coloring book moana,ART_AND_DESIGN,3.9,967,14M,500,000+,Free,0,Everyone,Art & De
 
 playstore_df, reviews_df = load_data()
 
-# Data Cleaning and Preprocessing with progress bar
 @st.cache_data
 def clean_playstore_data(df):
     progress_bar = st.progress(0)
     status_text = st.empty()
     
-    # Create a copy to avoid SettingWithCopyWarning
     df = df.copy()
     
     status_text.text("Cleaning data... Step 1/7: Handling missing values")
     progress_bar.progress(15)
-    # Handle missing values - only drop rows with missing Rating
     df = df.dropna(subset=['Rating'])
     
     status_text.text("Cleaning data... Step 2/7: Cleaning Installs column")
     progress_bar.progress(30)
-    # Clean 'Installs' column
     df['Installs'] = (
         df['Installs']
         .astype(str)
@@ -203,7 +192,6 @@ def clean_playstore_data(df):
     
     status_text.text("Cleaning data... Step 3/7: Cleaning Size column")
     progress_bar.progress(45)
-    # Clean 'Size' column
     df['Size'] = (
         df['Size']
         .astype(str)
@@ -215,7 +203,6 @@ def clean_playstore_data(df):
     
     status_text.text("Cleaning data... Step 4/7: Cleaning Price column")
     progress_bar.progress(60)
-    # Clean 'Price' column
     df['Price'] = (
         df['Price']
         .astype(str)
@@ -227,16 +214,13 @@ def clean_playstore_data(df):
     
     status_text.text("Cleaning data... Step 5/7: Converting Reviews")
     progress_bar.progress(75)
-    # Convert 'Reviews' to numeric
     df['Reviews'] = pd.to_numeric(df['Reviews'], errors='coerce').fillna(0)
     
     status_text.text("Cleaning data... Step 6/7: Converting dates")
     progress_bar.progress(90)
-    # Convert 'Last Updated' to datetime
     df['Last Updated'] = pd.to_datetime(df['Last Updated'], errors='coerce')
     
     status_text.text("Cleaning data... Step 7/7: Final transformations")
-    # Create a binary column for Free/Paid
     df['Is_Free'] = df['Type'].apply(lambda x: 1 if x == 'Free' else 0)
     
     progress_bar.progress(100)
@@ -249,10 +233,8 @@ def clean_playstore_data(df):
 
 @st.cache_data
 def clean_reviews_data(df):
-    # Convert date column to datetime
     df['at'] = pd.to_datetime(df['at'])
     
-    # Handle missing values
     df['content'] = df['content'].fillna('')
     
     return df
@@ -260,28 +242,22 @@ def clean_reviews_data(df):
 playstore_df = clean_playstore_data(playstore_df)
 reviews_df = clean_reviews_data(reviews_df)
 
-# Data Transformation
 @st.cache_data
 def transform_data(df):
-    # Create log-transformed installs
     df['Log_Installs'] = np.log1p(df['Installs'])
     
-    # Categorize ratings
     bins = [0, 1, 2, 3, 4, 5]
     labels = ['Very Poor', 'Poor', 'Average', 'Good', 'Excellent']
     df['Rating_Category'] = pd.cut(df['Rating'], bins=bins, labels=labels, include_lowest=True)
     
-    # Calculate revenue estimate (for paid apps)
     df['Revenue_Estimate'] = df['Price'] * df['Installs']
     
-    # Extract year from last updated
     df['Last_Updated_Year'] = df['Last Updated'].dt.year
     
     return df
 
 playstore_df = transform_data(playstore_df)
 
-# Sentiment Analysis
 def analyze_sentiment(text):
     sia = SentimentIntensityAnalyzer()
     sentiment = sia.polarity_scores(text)
@@ -298,7 +274,6 @@ def perform_sentiment_analysis(reviews_df):
                                              labels=['Negative', 'Somewhat Negative', 
                                                     'Somewhat Positive', 'Positive'])
         
-        # Add emoji based on sentiment
         def sentiment_to_emoji(sentiment):
             if sentiment > 0.5:
                 return "😊"
@@ -316,12 +291,10 @@ def perform_sentiment_analysis(reviews_df):
 if not reviews_df.empty:
     reviews_df = perform_sentiment_analysis(reviews_df)
     
-    # Merge sentiment with playstore data
     avg_sentiment = reviews_df.groupby('package')['Sentiment'].mean().reset_index()
     playstore_df = playstore_df.merge(avg_sentiment, left_on='App', right_on='package', how='left')
     playstore_df['Sentiment'] = playstore_df['Sentiment'].fillna(0)
 
-# New Feature: App Age Calculation
 @st.cache_data
 def calculate_app_age(df):
     df['Last_Updated_Year'] = df['Last Updated'].dt.year
@@ -331,7 +304,6 @@ def calculate_app_age(df):
 
 playstore_df = calculate_app_age(playstore_df)
 
-# New Feature: Price Category
 @st.cache_data
 def add_price_category(df):
     df['Price_Category'] = pd.cut(df['Price'],
@@ -342,7 +314,6 @@ def add_price_category(df):
 
 playstore_df = add_price_category(playstore_df)
 
-# Modern App Card Component
 def app_card(app_data):
     card_html = f"""
     <div style="
@@ -377,7 +348,6 @@ def app_card(app_data):
     """
     return card_html
 
-# Streamlit App
 def main():
     st.title("Play Store Insights Pro")
     st.markdown("""
@@ -390,7 +360,6 @@ def main():
     </style>
     """, unsafe_allow_html=True)
     
-    # Sidebar with modern styling
     with st.sidebar:
         st.markdown("""
         <h2 style='color: white; text-align: center;'>FILTERS</h2>
@@ -431,7 +400,6 @@ def main():
         </div>
         """, unsafe_allow_html=True)
     
-    # Filter data based on selections
     filtered_df = playstore_df.copy()
     if selected_category != 'All':
         filtered_df = filtered_df[filtered_df['Category'] == selected_category]
@@ -444,7 +412,6 @@ def main():
         (filtered_df['Price_Category'].isin(price_filter))
     ]
     
-    # Overview Metrics with modern cards
     st.header("Key Metrics")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
@@ -467,7 +434,6 @@ def main():
                  f"{paid_pct:.1f}% of total", 
                  help="Number and percentage of paid apps")
     
-    # Tabs for different sections with modern styling
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "App Explorer", 
         "Market Trends", 
@@ -479,7 +445,6 @@ def main():
     with tab1:
         st.subheader("App Explorer")
         
-        # Top Apps section
         st.markdown("### 🏆 Top Performing Apps")
         
         col1, col2, col3 = st.columns(3)
@@ -502,7 +467,6 @@ def main():
                 for _, app in top_by_revenue.iterrows():
                     st.markdown(app_card(app), unsafe_allow_html=True)
         
-        # App Distribution
         st.markdown("### 📊 App Distribution")
         
         col1, col2 = st.columns(2)
@@ -776,7 +740,7 @@ def main():
             
             X, y, le = prepare_ml_data(playstore_df)
             
-            # Train model with progress indicator
+            # Train model 
             with st.spinner('Training machine learning model...'):
                 model = RandomForestRegressor(n_estimators=100, random_state=42)
                 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -854,7 +818,6 @@ def main():
                     prediction = model.predict(input_data)
                     predicted_installs = np.expm1(prediction[0])
                     
-                    # Show result with animation
                     with st.spinner('Calculating prediction...'):
                         time.sleep(1)
                         
