@@ -445,7 +445,7 @@ def main():
     ]
     
     # Overview Metrics with modern cards
-    st.header("📊 Key Metrics")
+    st.header("Key Metrics")
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric("Total Apps", f"{len(filtered_df):,}", help="Number of apps in current selection")
