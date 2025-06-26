@@ -26,8 +26,8 @@ nltk.download('punkt')
 
 # Set page config with modern theme
 st.set_page_config(
-    page_title="📱 Play Store Insights Pro",
-    page_icon="📱",
+    page_title="Play Store Insights Pro",
+    page_icon=" ",
     layout="wide",
     initial_sidebar_state="expanded"
 )
