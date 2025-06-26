@@ -379,7 +379,7 @@ def app_card(app_data):
 
 # Streamlit App
 def main():
-    st.title("📱 Play Store Insights Pro")
+    st.title("Play Store Insights Pro")
     st.markdown("""
     <style>
         .title {
@@ -393,7 +393,7 @@ def main():
     # Sidebar with modern styling
     with st.sidebar:
         st.markdown("""
-        <h2 style='color: white; text-align: center;'>🔍 Filters</h2>
+        <h2 style='color: white; text-align: center;'>FILTERS</h2>
         """, unsafe_allow_html=True)
         
         selected_category = st.selectbox(
@@ -469,10 +469,10 @@ def main():
     
     # Tabs for different sections with modern styling
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "📱 App Explorer", 
-        "📈 Market Trends", 
-        "💬 Reviews Insights", 
-        "💰 Revenue Analysis",
+        "App Explorer", 
+        "Market Trends", 
+        "Reviews Insights", 
+        "Revenue Analysis",
         "🤖 AI Predictor"
     ])
     
